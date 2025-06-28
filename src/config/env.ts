@@ -13,6 +13,7 @@ const envSchema = z.object({
   ARGON_PARALLELISM: z.coerce.number().default(1),
   JWT_SECRET: z.string().min(1),
   COOKIE_EXPIRATION: z.coerce.number(),
+  REFRESH_TOKEN_EXPIRATION: z.coerce.number(),
   JWT_EXPIRATION: z.string(),
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z
