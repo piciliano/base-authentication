@@ -147,5 +147,4 @@ sequenceDiagram
   **Neto Vasconcelos**  
   🌐 [Portfólio](https://www.netodeveloper.com)  
   🔗 [LinkedIn](https://linkedin.com/in/picilianovasconcelos)  
-  💻 [GitHub](https://github.com/piciliano)
 </div>
