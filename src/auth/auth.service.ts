@@ -38,7 +38,7 @@ export class AuthService {
       Date.now() + Number(env.REFRESH_TOKEN_EXPIRATION),
     );
 
-    await this.prisma.refreshToken.create({
+    const refreshToken = await this.prisma.refreshToken.create({
       data: {
         userId: user.id,
         tokenHash: refreshTokenHash,
@@ -54,7 +54,7 @@ export class AuthService {
       path: '/',
     });
 
-    res.cookie('refreshToken', refreshTokenRaw, {
+    res.cookie('refreshToken', `${refreshToken.id}:${refreshTokenRaw}`, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -66,29 +66,56 @@ export class AuthService {
   }
 
   public async refreshTokens(req: Request, res: Response) {
-    const token = req.cookies['refreshToken'];
-    if (!token) throw new UnauthorizedException('Missing refresh token');
+    const cookie = req.cookies['refreshToken'];
+    if (!cookie) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
 
-    const tokens = await this.prisma.refreshToken.findMany({
-      where: { expiresAt: { gt: new Date() } },
-      include: { user: true },
+    const [refreshTokenId, refreshTokenValue] = cookie.split(':');
+    if (!refreshTokenId || !refreshTokenValue) {
+      throw new UnauthorizedException('Invalid refresh token format');
+    }
+
+    await this.prisma.refreshToken.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
     });
 
-    const match = await Promise.any(
-      tokens.map(async (t) => {
-        const isMatch = await this.hashService.verify(t.tokenHash, token);
-        return isMatch ? t : Promise.reject();
-      }),
-    ).catch(() => null);
+    const tokenRecord = await this.prisma.refreshToken.findUnique({
+      where: { id: refreshTokenId },
+      include: { user: true },
+    });
+    if (!tokenRecord) throw new UnauthorizedException('Invalid refresh token');
 
-    if (!match) throw new UnauthorizedException('Invalid refresh token');
+    const isMatch = await this.hashService.verify(
+      tokenRecord.tokenHash,
+      refreshTokenValue,
+    );
+    if (!isMatch) throw new UnauthorizedException('Invalid refresh token');
 
-    const user = match.user;
+    const user = tokenRecord.user;
     if (!user) throw new UnauthorizedException('User not found');
+
+    await this.prisma.refreshToken.delete({
+      where: { id: tokenRecord.id },
+    });
 
     const payload = { email: user.email, sub: user.id, role: user.role };
     const newAccessToken = this.jwtService.sign(payload, {
       expiresIn: env.JWT_EXPIRATION,
+    });
+
+    const newRefreshTokenRaw = randomBytes(32).toString('hex');
+    const newRefreshTokenHash = await this.hashService.hash(newRefreshTokenRaw);
+    const newRefreshExpiresAt = new Date(
+      Date.now() + Number(env.REFRESH_TOKEN_EXPIRATION),
+    );
+
+    const newRefreshToken = await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: newRefreshTokenHash,
+        expiresAt: newRefreshExpiresAt,
+      },
     });
 
     res.cookie('jwt', newAccessToken, {
@@ -99,10 +126,24 @@ export class AuthService {
       path: '/',
     });
 
+    res.cookie('refreshToken', `${newRefreshToken.id}:${newRefreshTokenRaw}`, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: env.REFRESH_TOKEN_EXPIRATION,
+      path: '/',
+    });
+
     return { message: 'Token refreshed' };
   }
 
-  public async logout(res: Response) {
+  public async logout(res: Response, userId?: string) {
+    if (userId) {
+      await this.prisma.refreshToken.deleteMany({
+        where: { userId },
+      });
+    }
+
     res.clearCookie('jwt', {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
