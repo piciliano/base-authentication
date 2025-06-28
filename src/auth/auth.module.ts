@@ -10,5 +10,6 @@ import { JwtModule } from './jwt/jwt.module';
   imports: [JwtModule, PrismaModule, HashModule],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}
