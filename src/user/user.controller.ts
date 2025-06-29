@@ -12,11 +12,10 @@ import { UserService } from './user.service';
 import { UpdateUserDto, updateUserSchema } from './schemas/update-user.dto';
 import { CreateUserDto, createUserSchema } from './schemas/create-user.schema';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { CurrentUserType } from 'src/auth/types/current-user.interface';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -32,7 +31,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('USER')
   @Get()
-  findAll(@CurrentUser() user: CurrentUserType) {
+  findAll() {
     return this.userService.findAll();
   }
 
