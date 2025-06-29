@@ -26,14 +26,6 @@ export class AuthController {
     return this.authService.handleLogin(createAuthDto, res);
   }
 
-  @Post('refresh')
-  async refresh(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.authService.refreshTokens(req, res);
-  }
-
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getMe(@CurrentUser() user: CurrentUserType) {
