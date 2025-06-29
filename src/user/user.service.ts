@@ -22,7 +22,8 @@ export class UserService {
       },
     });
 
-    const { password, ...safeUser } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...safeUser } = user;
     return safeUser;
   }
 
@@ -44,7 +45,8 @@ export class UserService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  update(id: number, _updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
