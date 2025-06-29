@@ -5,10 +5,12 @@ import { JwtStrategy } from './jwt/jwt.strategy';
 import { PrismaModule } from 'prisma/prisma.module';
 import { HashModule } from 'src/hash/hash.module';
 import { JwtModule } from './jwt/jwt.module';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [JwtModule, PrismaModule, HashModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard],
 })
 export class AuthModule {}
