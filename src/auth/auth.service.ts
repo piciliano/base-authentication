@@ -27,6 +27,14 @@ export class AuthService {
     if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials');
 
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    await this.prisma.refreshToken.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
+    });
+
     const payload = { email: user.email, sub: user.id, role: user.role };
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: env.JWT_EXPIRATION,
@@ -66,7 +74,7 @@ export class AuthService {
   }
 
   public async refreshTokens(req: Request, res: Response) {
-    const cookie = req.cookies['refreshToken'];
+    const cookie = req.cookies['refreshToken'] as string | undefined;
     if (!cookie) {
       throw new UnauthorizedException('Missing refresh token');
     }
@@ -95,8 +103,8 @@ export class AuthService {
     const user = tokenRecord.user;
     if (!user) throw new UnauthorizedException('User not found');
 
-    await this.prisma.refreshToken.delete({
-      where: { id: tokenRecord.id },
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId: user.id },
     });
 
     const payload = { email: user.email, sub: user.id, role: user.role };
@@ -143,6 +151,10 @@ export class AuthService {
         where: { userId },
       });
     }
+
+    await this.prisma.refreshToken.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
+    });
 
     res.clearCookie('jwt', {
       httpOnly: true,
