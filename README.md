@@ -129,6 +129,42 @@ sequenceDiagram
 | GET    | `/:id`   | -                     | Pública   | Busca por ID       |
 | PATCH  | `/:id`   | `{email?, name?, pw?}`| Pública   | Atualiza usuário   |
 | DELETE | `/:id`   | -                     | Pública   | Remove usuário     |
+## 🛠 Fluxo rápido de como ocorre:
+
+- O **JWT (Access Token)** é enviado em um cookie `httpOnly` chamado `jwt`.  
+- O **Refresh Token** é armazenado em um cookie `httpOnly` chamado `refreshToken`, e seu valor contém:  
+  `<refreshTokenId>:<refreshTokenRaw>`  
+- Os tokens são gerados no login e renovados automaticamente via endpoint `/auth/refresh`.
+
+---
+
+## Renovação e Validação de Tokens
+
+### Login (`POST /auth/login`)
+
+- Verifica credenciais.  
+- Remove todos os **refresh tokens antigos** do usuário.  
+- Gera novos tokens:  
+  - `jwt`: assinado com tempo curto (`JWT_EXPIRATION`).  
+  - `refreshToken`: armazenado no banco com hash e expiração.  
+- Ambos são enviados como cookies `httpOnly`.
+
+### Logout (`POST /auth/logout`)
+
+- Remove todos os refresh tokens associados ao usuário.  
+- Limpa os cookies `jwt` e `refreshToken`.
+
+---
+
+## Limpeza de Tokens Expirados
+
+Em **todas as rotas críticas** (login, refresh e logout), é executada a limpeza automática de tokens expirados com:
+
+```ts
+await this.prisma.refreshToken.deleteMany({
+  where: { expiresAt: { lt: new Date() } },
+});
+```
 
 ## 📚 Documentação Adicional
 
