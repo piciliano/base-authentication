@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NestMiddleware,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
@@ -17,17 +13,49 @@ export class RefreshTokenMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     const token = req.cookies['jwt'];
-    if (!token) return next();
+
+    if (!token) {
+      return next();
+    }
 
     try {
       this.jwtService.verify(token, { secret: env.JWT_SECRET });
       return next();
     } catch (err) {
       if (err.name === 'TokenExpiredError') {
-        await this.authService.refreshTokens(req, res);
-        return next();
+        try {
+          await this.authService.refreshTokens(req, res);
+          return next();
+        } catch (refreshError) {
+          res.clearCookie('jwt', {
+            httpOnly: true,
+            secure: env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+          });
+          res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+          });
+          return next();
+        }
       }
-      throw new UnauthorizedException('Invalid token');
+
+      res.clearCookie('jwt', {
+        httpOnly: true,
+        secure: env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+      return next();
     }
   }
 }
