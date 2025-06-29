@@ -103,10 +103,11 @@ sequenceDiagram
   - Refresh Token (7 dias)
 - Armazena hash do refresh token no DB
 
-### 🛡️ Acesso Protegido
-- Middleware verifica cookie JWT
-- Se expirado, usa refresh token para gerar novo JWT
-- Atualiza cookies automaticamente
+### 🛡️ Acesso Protegido (com JWT + Refresh Token via Cookies)
+- O guard verifica o JWT vindo no cookie
+- Se estiver expirado, tenta usar o refresh token (também no cookie) para gerar um novo JWT
+- O cookie é atualizado, mas só será enviado pelo navegador na próxima requisição
+- Portanto, a primeira tentativa falha com 401, e o frontend deve tratar isso para evitar erro visível ao usuário
 
 ### 🚪 Logout
 - Remove cookies
@@ -131,6 +132,52 @@ sequenceDiagram
 | GET    | `/:id`    | -                     | Pública   | Busca por ID       |
 | PATCH  | `/:id`    | `{email?, name?, pw?}`| Pública   | Atualiza usuário   |
 | DELETE | `/:id`    | -                     | Pública   | Remove usuário     |
+
+## 🛠 Fluxo rápido de como ocorre:
+
+- O **JWT (Access Token)** é enviado em um cookie `httpOnly` chamado `jwt`.  
+- O **Refresh Token** é armazenado em um cookie `httpOnly` chamado `refreshToken`, e seu valor contém:  
+  `<refreshTokenId>:<refreshTokenRaw>`  
+- Os tokens são gerados no login e renovados automaticamente via endpoint `/auth/refresh`.
+
+---
+
+## Renovação e Validação de Tokens
+
+### Login (`POST /auth/login`)
+
+- Verifica credenciais.  
+- Remove todos os **refresh tokens antigos** do usuário.  
+- Gera novos tokens:  
+  - `jwt`: assinado com tempo curto (`JWT_EXPIRATION`).  
+  - `refreshToken`: armazenado no banco com hash e expiração.  
+- Ambos são enviados como cookies `httpOnly`.
+
+### Refresh (`POST /auth/refresh`)
+
+- Extrai o cookie `refreshToken` e separa ID e valor.  
+- Busca o token no banco usando o ID.  
+- Verifica a validade do token:  
+  - Se expirado ou inexistente: rejeita.  
+  - Se válido: deleta todos os anteriores e gera novos tokens.  
+- Tokens atualizados são devolvidos como novos cookies.
+
+### Logout (`POST /auth/logout`)
+
+- Remove todos os refresh tokens associados ao usuário.  
+- Limpa os cookies `jwt` e `refreshToken`.
+
+---
+
+## Limpeza de Tokens Expirados
+
+Em **todas as rotas críticas** (login, refresh e logout), é executada a limpeza automática de tokens expirados com:
+
+```ts
+await this.prisma.refreshToken.deleteMany({
+  where: { expiresAt: { lt: new Date() } },
+});
+```
 
 ## 📚 Documentação Adicional
 
