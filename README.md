@@ -5,6 +5,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 ![Argon2](https://img.shields.io/badge/Argon2-Hashing-13B38C?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgZD0iTTI1NiA0MDhjLTgzLjkgMC0xNTItNjguMS0xNTItMTUyczY4LjEtMTUyIDE1Mi0xNTIgMTUyIDY4LjEgMTUyIDE1Mi02OC4xIDE1Mi0xNTIgMTUyem0w-224Yy0zOS43IDAtNzIgMzIuMy03MiA3MnMzMi4zIDcyIDcyIDcyIDcyLTMyLjMgNzItNzItMzIuMy03Mi03Mi03MnoiLz48L3N2Zz4=)
+
 API de autenticação segura com NestJS, Prisma e JWT, implementando refresh tokens e controle de acesso por roles.
 
 ## ✨ Funcionalidades
