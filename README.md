@@ -1,98 +1,186 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🔐 Auth API - NestJS + Prisma + JWT
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![NestJS](https://img.shields.io/badge/NestJS-v9-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-v5-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Argon2](https://img.shields.io/badge/Argon2-Hashing-13B38C?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgZD0iTTI1NiA0MDhjLTgzLjkgMC0xNTItNjguMS0xNTItMTUyczY4LjEtMTUyIDE1Mi0xNTIgMTUyIDY4LjEgMTUyIDE1Mi02OC4xIDE1Mi0xNTIgMTUyem0w-224Yy0zOS43IDAtNzIgMzIuMy03MiA3MnMzMi4zIDcyIDcyIDcyIDcyLTMyLjMgNzItNzItMzIuMy03Mi03Mi03MnoiLz48L3N2Zz4=)
+API de autenticação segura com NestJS, Prisma e JWT, implementando refresh tokens e controle de acesso por roles.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## ✨ Funcionalidades
 
-## Description
+- **Autenticação JWT** com cookies HTTP-only
+- **Refresh Tokens** seguros armazenados no banco
+- **Controle de acesso** por roles (USER, ADMIN)
+- **Validação de dados** com Zod
+- **Hashing seguro** com Argon2
+- **CRUD completo** de usuários
+- **Prisma ORM** com PostgreSQL
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠 Tecnologias
 
-## Project setup
+| Tecnologia       | Descrição                                  |
+|------------------|-------------------------------------------|
+| NestJS           | Framework para construção de APIs eficientes |
+| Prisma           | ORM moderno para TypeScript/Node.js        |
+| PostgreSQL       | Banco de dados relacional                 |
+| Argon2           | Algoritmo de hashing para senhas          |
+| Zod              | Validação de schemas TypeScript-first     |
+| Passport.js      | Middleware de autenticação                |
 
+## ⚙️ Configuração
+
+1. Clone o repositório:
 ```bash
-$ npm install
+git clone https://github.com/piciliano/base-autentication.git
+cd base-autentication
+```
+2. Instale as dependências:
+```bash
+npm install
+```
+3. Configure o ambiente:
+```bash
+cp .env.example .env
+# Edite o .env com suas configurações
+```
+4. Execute as migrações do Prisma:
+```bash
+npx prisma migrate dev --name init
+```
+5. (Opcional) Popule o banco com dados iniciais:
+```bash
+npx prisma db seed
+```
+6. Execute em desenvolvimento:
+```bash
+npm run start:dev
+```
+### 1️⃣ Login Inicial (Geração dos Tokens)
+```mermaid
+sequenceDiagram
+    participant Cliente
+    participant Servidor
+    Cliente->>Servidor: POST /auth/login (email, senha)
+    Servidor->>Servidor: Valida credenciais (Argon2)
+    Servidor->>Servidor: Gera JWT (1h) + Refresh Token (7d)
+    Servidor->>Cliente: HTTP 200 + Cookies (JWT + Refresh)
 ```
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+### 2️⃣ Acesso com Token Válido
+```mermaid
+sequenceDiagram
+    participant Cliente
+    participant Servidor
+    Cliente->>Servidor: GET /rota-protegida (Cookie JWT)
+    Servidor->>Servidor: Verifica assinatura JWT
+    Servidor->>Cliente: HTTP 200 + Dados protegidos
 ```
 
-## Run tests
+### 3️⃣ Renovação com Refresh Token
+```mermaid
+sequenceDiagram
+    participant Cliente
+    participant Servidor
+    Cliente->>Servidor: GET /rota-protegida (JWT expirado)
+    Servidor->>Cliente: HTTP 401 (Token expirado)
+    Cliente->>Servidor: Envia Refresh Token (Cookie)
+    Servidor->>Servidor: Verifica no banco de dados
+    alt Token válido
+        Servidor->>Cliente: Novos Cookies (JWT + Refresh)
+    else Token inválido
+        Servidor->>Cliente: HTTP 401 + Força novo login
+    end
+```
+## 🔐 Detalhes da Implementação
 
-```bash
-# unit tests
-$ npm run test
+### 🔑 Login
+- Recebe email/senha
+- Valida com Zod
+- Verifica no banco (com Argon2)
+- Gera:
+  - JWT (1h de validade)
+  - Refresh Token (7 dias)
+- Armazena hash do refresh token no DB
 
-# e2e tests
-$ npm run test:e2e
+### 🛡️ Acesso Protegido
+- Middleware verifica cookie JWT
+- Se expirado, usa refresh token para gerar novo JWT
+- Atualiza cookies automaticamente
 
-# test coverage
-$ npm run test:cov
+### 🚪 Logout
+- Remove cookies
+- (Opcional) Invalida refresh token no banco
+
+## 🌐 Rotas da API
+
+### 🔑 Autenticação (`/auth`)
+| Método | Endpoint | Body (JSON)           | Descrição               |
+|--------|----------|-----------------------|-------------------------|
+| POST   | `/login` | `{email, password}`   | Autentica usuário       |
+| GET    | `/me`    | -                     | Dados do usuário atual  |
+| POST   | `/logout`| -                     | Encerra sessão          |
+
+### 👥 Usuários (`/user`)
+| Método | Endpoint | Body (JSON)           | Permissão | Descrição          |
+|--------|----------|-----------------------|-----------|--------------------|
+| POST   | `/`      | `{email, name, pw}`   | Pública   | Cria novo usuário  |
+| GET    | `/`      | -                     | USER      | Lista usuários     |
+| GET    | `/:id`   | -                     | Pública   | Busca por ID       |
+| PATCH  | `/:id`   | `{email?, name?, pw?}`| Pública   | Atualiza usuário   |
+| DELETE | `/:id`   | -                     | Pública   | Remove usuário     |
+## 🛠 Fluxo rápido de como ocorre:
+
+- O **JWT (Access Token)** é enviado em um cookie `httpOnly` chamado `jwt`.  
+- O **Refresh Token** é armazenado em um cookie `httpOnly` chamado `refreshToken`, e seu valor contém:  
+  `<refreshTokenId>:<refreshTokenRaw>`  
+- Os tokens são gerados no login e renovados automaticamente via endpoint `/auth/refresh`.
+
+---
+
+## Renovação e Validação de Tokens
+
+### Login (`POST /auth/login`)
+
+- Verifica credenciais.  
+- Remove todos os **refresh tokens antigos** do usuário.  
+- Gera novos tokens:  
+  - `jwt`: assinado com tempo curto (`JWT_EXPIRATION`).  
+  - `refreshToken`: armazenado no banco com hash e expiração.  
+- Ambos são enviados como cookies `httpOnly`.
+
+### Logout (`POST /auth/logout`)
+
+- Remove todos os refresh tokens associados ao usuário.  
+- Limpa os cookies `jwt` e `refreshToken`.
+
+---
+
+## Limpeza de Tokens Expirados
+
+Em **todas as rotas críticas** (login, refresh e logout), é executada a limpeza automática de tokens expirados com:
+
+```ts
+await this.prisma.refreshToken.deleteMany({
+  where: { expiresAt: { lt: new Date() } },
+});
 ```
 
-## Deployment
+## 📚 Documentação Adicional
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- [Prisma Documentation](https://www.prisma.io/docs) - Guia completo do ORM
+- [NestJS Security](https://docs.nestjs.com/security) - Melhores práticas de segurança
+- [JWT Best Practices](https://curity.io/resources/learn/jwt-best-practices) - Padrões para autenticação JWT
+- [Argon2 Documentation](https://github.com/ranisalt/node-argon2) - Implementação do algoritmo de hashing
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+## 👨‍💻 Autor
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+<div align="center">
+  <img src="https://github.com/piciliano.png" width="150" style="border-radius: 50%">
+  
+  **Neto Vasconcelos**  
+  🌐 [Portfólio](https://www.netodeveloper.com)  
+  🔗 [LinkedIn](https://linkedin.com/in/picilianovasconcelos)  
+</div>
